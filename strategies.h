@@ -1,3 +1,7 @@
+
+#ifndef STRATEGIES_H
+#define STRATEGIES_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -47,3 +51,6 @@ int play(strategy strat, int player, int turn, previous_plays* prev);
 result_of_fight* fight(strategy strat1, strategy strat2, int n);
 void fight_all_against_all(int n);
 int score_against_all(strategy strat, int n);
+void all_score_against_all(int n);
+
+#endif
