@@ -1,5 +1,20 @@
 #include "strategies.h"
 
+strategy* get_strategies_array() {
+  strategy* strategies = malloc(NB_STRATEGY * sizeof(strategy));
+  strategies[0] = GENTILLE;
+  strategies[1] = MECHANTE;
+  strategies[2] = DONNANT_DONNANT;
+  strategies[3] = RANCUNIERE;
+  strategies[4] = PERIODIQUE_MECHANTE;
+  strategies[5] = PERIODIQUE_GENTILLE;
+  strategies[6] = MAJORITE_MOU;
+  strategies[7] = MEFIANTE;
+  strategies[8] = MAJORITE_DUR;
+  strategies[9] = SONDEUR;
+  strategies[10] = DONNANT_DONNANT_DUR;
+  return strategies;
+}
 
 int majority(int plays[], int n, int mou) {
   int nb_coop = 0;
@@ -51,7 +66,7 @@ int play(strategy strat, int player, int turn, previous_plays* prev) {
     case SONDEUR:
       if (turn == 0) return BETRAY;
       if (turn == 1) return COOPERATE;
-      if (turn == 0) return COOPERATE;
+      if (turn == 2) return COOPERATE;
       if (player == 0 && prev->player_1[1] == COOPERATE && prev->player_1[2] == COOPERATE)
         return BETRAY;
       else if (player == 1 && prev->player_0[1] == COOPERATE && prev->player_0[2] == COOPERATE)
@@ -74,7 +89,7 @@ int play(strategy strat, int player, int turn, previous_plays* prev) {
 }
 
 
-int fight(strategy strat1, strategy strat2, int n) {
+result_of_fight* fight(strategy strat1, strategy strat2, int n) {
   int i;
   int score_player_0 = 0;
   int score_player_1 = 0;
@@ -108,5 +123,55 @@ int fight(strategy strat1, strategy strat2, int n) {
   free(prev->player_0);
   free(prev->player_1);
   free(prev);
-  return score_player_0 > score_player_1 ? 0 : (score_player_1 > score_player_0 ? 1 : 2);
+  result_of_fight* result = malloc(sizeof(result_of_fight));
+  result->winner = score_player_0 > score_player_1 ? 0 : (score_player_1 > score_player_0 ? 1 : 2);
+  result->score_winner = result->winner == 0 ? score_player_0 : (result->winner == 1 ? score_player_1 : score_player_1);
+  result->score_looser = result->winner == 0 ? score_player_1 : (result->winner == 1 ? score_player_0 : score_player_1);
+  result->score_player_0 = score_player_0;
+  result->score_player_1 = score_player_1;
+  return result;
+}
+
+void fight_all_against_all(int n) {
+  strategy* strategies = get_strategies_array();
+  result_of_fight* result;
+  int i, j, k;
+  printf("       ");
+  for (k = 0; k < NB_STRATEGY; k++) printf("%d   ", k);
+  printf ("\n");
+  for (i = 0; i < NB_STRATEGY; i++) {
+    printf(i < 10 ? "%d  - " : "%d - ", i);
+    for (j = 0; j < NB_STRATEGY; j++) {
+      result = fight(strategies[i], strategies[j], n);
+      printf(result->winner < 2 ? "| %d " : "| E ", result->winner + 1);
+      free(result);
+      if (j == NB_STRATEGY - 1) printf("|\n");
+    }
+  }
+  printf("\n");
+  free(strategies);
+}
+
+int score_against_all(strategy strat, int n) {
+  strategy* strategies = get_strategies_array();
+  result_of_fight* result;
+  int i, score;
+  for (i = 0; i < NB_STRATEGY; i++) {
+    result = fight(strat, strategies[i], n);
+    score += result->score_player_0;
+    free(result);
+  }
+  free(strategies);
+  return score;
+}
+
+void all_score_against_all(int n) {
+  strategy* strategies = get_strategies_array();
+  int i;
+  printf("N = %d\n", n);
+  for (i = 0; i < NB_STRATEGY; i++) {
+    printf(i < 10 ? "%d  " : "%d ", i);
+    printf("| %d\n", score_against_all(strategies[i], n));
+  }
+  printf("\n");
 }
