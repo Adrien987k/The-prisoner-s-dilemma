@@ -1,3 +1,7 @@
+//ENG_20170104_001 : score corrigé (pb de remise à zéro)
+
+
+
 #include "strategies.h"
 
 strategy* get_strategies_array() {
@@ -156,6 +160,7 @@ int score_against_all(strategy strat, int n) {
   strategy* strategies = get_strategies_array();
   result_of_fight* result;
   int i, score;
+  score = 0;      //ENG_20170104_001
   for (i = 0; i < NB_STRATEGY; i++) {
     result = fight(strat, strategies[i], n);
     score += result->score_player_0;
