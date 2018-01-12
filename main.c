@@ -2,7 +2,11 @@
 #include "strategies.h"
 
 int main () {
-  city_parameters* parameters = create_city_parameters(5, 0, 3, 1);
+  bool allowed_strategies[NB_STRATEGY];
+  int i;
+  for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = true;
+
+  city_parameters* parameters = create_city_parameters(5, 0, 3, 1, allowed_strategies);
 
   fight_all_against_all(100, parameters);
 

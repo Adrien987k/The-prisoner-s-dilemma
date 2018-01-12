@@ -19,11 +19,12 @@ typedef struct {
   int D;
   int C;
   int P;
+  bool allowed_strategies[NB_STRATEGY];
+  int nb_allowed_strategies;
 } city_parameters;
 
 typedef struct {
   population* pop;
-  bool allowed_strategies[NB_STRATEGY];
   city_parameters* parameters;
 } city;
 

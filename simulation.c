@@ -70,12 +70,10 @@ void simulate_one_generation(city* cit) {
 }
 
 void simulate_population(int max_generation, int entity_per_strat, city_parameters* parameters) {
-  bool allowed_strategies[NB_STRATEGY];
+
+  city* cit = create_city(entity_per_strat, parameters);
+
   int i;
-  for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = true;
-
-  city* cit = create_city(entity_per_strat, allowed_strategies, parameters);
-
   for (i = 0; i < max_generation; i++)
     simulate_one_generation(cit);
 
@@ -85,22 +83,22 @@ void simulate_population(int max_generation, int entity_per_strat, city_paramete
   destroy_city(cit);
 }
 
-city_parameters* create_city_parameters(int T, int D, int C, int P) {
+city_parameters* create_city_parameters(int T, int D, int C, int P, bool allowed_strategies[]) {
   city_parameters* parameters = malloc(sizeof(city_parameters));
   parameters->T = T;
   parameters->D = D;
   parameters->C = C;
   parameters->P = P;
 
+  int i;
+  for (i = 0; i < NB_STRATEGY; i++) parameters->allowed_strategies[i] = allowed_strategies[i];
+
   return parameters;
 }
 
-city* create_city(int entity_per_strat, bool allowed_strategies[], city_parameters* parameters) {
+city* create_city(int entity_per_strat, city_parameters* parameters) {
   city* cit = malloc(sizeof(city));
   cit->pop = create_population(entity_per_strat);
-
-  int i;
-  for (i = 0; i < NB_STRATEGY; i++) cit->allowed_strategies[i] = allowed_strategies[i];
 
   cit->parameters = malloc(sizeof(city_parameters));
   cit->parameters = parameters;
