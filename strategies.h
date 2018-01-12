@@ -2,19 +2,10 @@
 #ifndef STRATEGIES_H
 #define STRATEGIES_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-
-#define T 5
-#define D 0
-#define C 3
-#define P 1
+#include "city.h"
 
 #define BETRAY 0
 #define COOPERATE 1
-
-#define NB_STRATEGY 11
 
 typedef enum {
   GENTILLE,
@@ -48,9 +39,9 @@ typedef struct {
 strategy* get_strategies_array();
 int majority(int plays[], int n, int mou);
 int play(strategy strat, int player, int turn, previous_plays* prev);
-result_of_fight* fight(strategy strat1, strategy strat2, int n);
-void fight_all_against_all(int n);
-int score_against_all(strategy strat, int n);
-void all_score_against_all(int n);
+result_of_fight* fight(strategy strat1, strategy strat2, int nb_turn, city_parameters* parameters);
+void fight_all_against_all(int nb_turn, city_parameters* parameters);
+int score_against_all(strategy strat, int nb_turn, city_parameters* parameters);
+void all_score_against_all(int nb_turn, city_parameters* parameters);
 
 #endif

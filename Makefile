@@ -8,9 +8,9 @@ CFLAGS=-W -Wall -g -lm
 
 default: $(EXEC)
 
-strategies.o: strategies.c strategies.h
-simulation.o: simulation.c simulation.h strategies.h
-main.o: main.c simulation.h
+strategies.o: strategies.c strategies.h simulation.h
+simulation.o: simulation.c simulation.h constant.h
+main.o: main.c strategies.h simulation.h
 
 %.o: %.c
 	$(CC) -o $@ -c $< $(CFLAGS)
