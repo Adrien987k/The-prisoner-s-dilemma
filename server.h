@@ -15,6 +15,12 @@
 #include <netdb.h>
 #include <string.h>
 #include <pthread.h>
+#include <poll.h>
+
+#include "simulation.h"
+
+#define PORT 1234
+#define NB_CLIENT 4
 
 typedef struct {
   int id;
@@ -25,14 +31,14 @@ typedef struct {
 typedef struct {
   client* clients;
   int nb_client;
-} clients;
+} client_pool;
 
 client* create_client();
-clients* create_clients();
-void add_client(clients* clts, client* clt);
-clients* wait_for_clients(int port);
+client_pool* create_empty_client_pool();
+void add_client(client_pool* clts, client* clt);
+client_pool* wait_for_clients(int port, int total_client);
 
-void run();
+void run_server();
 
 
-#endif SERVER_H
+#endif

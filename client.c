@@ -1,9 +1,9 @@
 
-#include "client.c"
+#include "client.h"
 
 server* create_server(int socket) {
   server* serv = malloc(sizeof(server));
-  serv->fd = socket;
+  serv->socket = socket;
   serv->chan = fdopen(socket, "rw");
   return serv;
 }
@@ -38,4 +38,64 @@ server* connect_to_server (char *hostname, int port) {
     printf("J'essaie à nouveau...\n");
   }
 
+}
+
+void send_current_state(server* serv, city* cit, population* migrants) {
+  int buffer[BUFSIZE];
+  int i, n = 0;
+  for (i = 0; i < NB_STRATEGY; i++) {
+    buffer[n++] = cit->pop->proportions[i];
+  }
+  buffer[n++] = cit->pop->nb_entity;
+  for (i = 0; i < NB_STRATEGY; i++) {
+    buffer[n++] = migrants->proportions[i];
+  }
+  buffer[n++] = migrants->nb_entity;
+
+  buffer[n] = END_OF_BUFFER;
+
+  send(serv->socket, (char*) buffer, BUFSIZE * sizeof(int), 0);
+}
+
+population* receive_emigrants(server* serv) {
+  population* emigrants = create_population(0, NULL);
+
+  int buffer[BUFSIZE];
+  recv(serv->socket, buffer, BUFSIZE * sizeof(int), 0);
+
+  int i;
+  for (i = 0; i < NB_STRATEGY; i++) emigrants->proportions[i] = buffer[i];
+  emigrants->nb_entity = buffer[i];
+
+  return emigrants;
+}
+
+void integrate_emigrants(city* cit, population* emigrants) {
+  int i;
+  for (i = 0; i < NB_STRATEGY; i++) {
+    cit->pop->proportions[i] += emigrants->proportions[i];
+  }
+  cit->pop->nb_entity += emigrants->nb_entity;
+}
+
+void run_client() {
+  server* serv = connect_to_server("hostname", PORT);
+
+  bool allowed_strategies[NB_STRATEGY];
+  int i;
+  for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = true;
+  city_parameters* parameters = create_city_parameters(5, 0, 3, 1, allowed_strategies);
+
+  city* cit = create_city(1000, parameters);
+
+  population* emigrants;
+  while (true) {
+    send_current_state(serv, cit, NULL); /* !!! SELECT PEOPLE TO SEND !!! */
+
+    emigrants = receive_emigrants(serv);
+
+    integrate_emigrants(cit, emigrants);
+
+    simulate_one_generation(cit);
+  }
 }
