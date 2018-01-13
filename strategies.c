@@ -1,7 +1,7 @@
 
 #include "strategies.h"
 
-strategy* get_strategies_array() {
+strategy* get_all_strategies_array() {
   strategy* strategies = malloc(NB_STRATEGY * sizeof(strategy));
   strategies[0] = GENTILLE;
   strategies[1] = MECHANTE;
@@ -14,6 +14,20 @@ strategy* get_strategies_array() {
   strategies[8] = MAJORITE_DUR;
   strategies[9] = SONDEUR;
   strategies[10] = DONNANT_DONNANT_DUR;
+  return strategies;
+}
+
+strategy* get_strategies_array(city_parameters* parameters) {
+  int nb_strat = parameters->nb_allowed_strategies;
+  strategy* all_strategies = get_all_strategies_array();
+  strategy* strategies = malloc(nb_strat * sizeof(strategy));
+
+  int i, j = 0;
+  for (i = 0; i < nb_strat; i++) {
+    if (parameters->allowed_strategies[i]) strategies[j++] = all_strategies[i];
+  }
+
+  free(all_strategies);
   return strategies;
 }
 
@@ -134,7 +148,7 @@ result_of_fight* fight(strategy strat1, strategy strat2, int nb_turn, city_param
 }
 
 void fight_all_against_all(int nb_turn, city_parameters* parameters) {
-  strategy* strategies = get_strategies_array();
+  strategy* strategies = get_strategies_array(parameters);
   result_of_fight* result;
   int i, j, k;
   printf("       ");
@@ -154,7 +168,7 @@ void fight_all_against_all(int nb_turn, city_parameters* parameters) {
 }
 
 int score_against_all(strategy strat, int nb_turn, city_parameters* parameters) {
-  strategy* strategies = get_strategies_array();
+  strategy* strategies = get_strategies_array(parameters);
   result_of_fight* result;
   int i, score;
   score = 0;
@@ -168,7 +182,7 @@ int score_against_all(strategy strat, int nb_turn, city_parameters* parameters) 
 }
 
 void all_score_against_all(int nb_turn, city_parameters* parameters) {
-  strategy* strategies = get_strategies_array();
+  strategy* strategies = get_strategies_array(parameters);
   int i;
   printf("N = %d\n", nb_turn);
   for (i = 0; i < NB_STRATEGY; i++) {

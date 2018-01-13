@@ -36,7 +36,7 @@ typedef struct {
   int score_player_1;
 } result_of_fight;
 
-strategy* get_strategies_array();
+strategy* get_strategies_array(city_parameters* parameters);
 int majority(int plays[], int n, int mou);
 int play(strategy strat, int player, int turn, previous_plays* prev);
 result_of_fight* fight(strategy strat1, strategy strat2, int nb_turn, city_parameters* parameters);

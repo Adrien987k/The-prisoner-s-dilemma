@@ -1,10 +1,11 @@
 
 #include "simulation.h"
 
-population* create_population(int entity_per_strat) {
+population* create_population(int nb_entity, bool allowed_strategies[]) {
   population* pop = malloc(sizeof(population));
-  pop->nb_entity = NB_STRATEGY * entity_per_strat;
+  pop->nb_entity = nb_entity;
   pop->generation = 0;
+  int entity_per_strat = 0;/* !!! repartition !!! */
   int i;
   for (i = 0; i < NB_STRATEGY; i++) {
     pop->proportions[i] = entity_per_strat;
@@ -13,17 +14,18 @@ population* create_population(int entity_per_strat) {
 }
 
 void simulate_one_generation(city* cit) {
-  int scores[NB_STRATEGY];
-  double restes[NB_STRATEGY];
+  int nb_strat = cit->parameters->nb_allowed_strategies;
+  int* scores = malloc(nb_strat * sizeof(int));
+  double* restes = malloc(nb_strat * sizeof(int));
   int i, j, k, l;
-  strategy* strategies = get_strategies_array();
+  strategy* strategies = get_strategies_array(cit->parameters);
   result_of_fight* result;
 
-  for (i = 0; i < NB_STRATEGY; i++) scores[i] = 0;
+  for (i = 0; i < nb_strat; i++) scores[i] = 0;
 
-  for (i = 0; i < NB_STRATEGY; i++) {
+  for (i = 0; i < nb_strat; i++) {
     for (j = 0; j < cit->pop->proportions[i]; j++) {
-      for (k = 0; k < NB_STRATEGY; k++) {
+      for (k = 0; k < nb_strat; k++) {
         for (l = (i == k ? 1 : 0); l < cit->pop->proportions[k]; l++) {
           result = fight(strategies[i], strategies[k], 10, cit->parameters);
           scores[i] += result->score_player_0;
@@ -39,10 +41,10 @@ void simulate_one_generation(city* cit) {
   int index_max;
   sum = 0;
   total_pop = 0;
-  for (i = 0; i < NB_STRATEGY; i++) {
+  for (i = 0; i < nb_strat; i++) {
     sum += scores[i];
   }
-  for (i = 0; i < NB_STRATEGY; i++) {
+  for (i = 0; i < nb_strat; i++) {
     double double_pop;
     int int_pop;
     double_pop = (sum != 0 ? cit->pop->nb_entity * (scores[i] / sum) : 0);
@@ -55,7 +57,7 @@ void simulate_one_generation(city* cit) {
   for (i = 0; i < reste; i++) {
     max_reste = 0;
     index_max = 0;
-    for (j = 0; j <NB_STRATEGY; j++) {
+    for (j = 0; j < nb_strat; j++) {
       if (restes[j]>max_reste) {
         max_reste = restes[j];
         index_max = j;
@@ -66,12 +68,14 @@ void simulate_one_generation(city* cit) {
   }
   cit->pop->generation++;
 
+  free(scores);
+  free(restes);
   free(strategies);
 }
 
-void simulate_population(int max_generation, int entity_per_strat, city_parameters* parameters) {
+void simulate_population(int max_generation, int nb_entity, city_parameters* parameters) {
 
-  city* cit = create_city(entity_per_strat, parameters);
+  city* cit = create_city(nb_entity, parameters);
 
   int i;
   for (i = 0; i < max_generation; i++)
@@ -91,14 +95,17 @@ city_parameters* create_city_parameters(int T, int D, int C, int P, bool allowed
   parameters->P = P;
 
   int i;
-  for (i = 0; i < NB_STRATEGY; i++) parameters->allowed_strategies[i] = allowed_strategies[i];
+  for (i = 0; i < NB_STRATEGY; i++) {
+    parameters->allowed_strategies[i] = allowed_strategies[i];
+    if (allowed_strategies[i]) parameters->nb_allowed_strategies;
+  }
 
   return parameters;
 }
 
-city* create_city(int entity_per_strat, city_parameters* parameters) {
+city* create_city(int nb_entity, city_parameters* parameters) {
   city* cit = malloc(sizeof(city));
-  cit->pop = create_population(entity_per_strat);
+  cit->pop = create_population(nb_entity, parameters->allowed_strategies);
 
   cit->parameters = malloc(sizeof(city_parameters));
   cit->parameters = parameters;
