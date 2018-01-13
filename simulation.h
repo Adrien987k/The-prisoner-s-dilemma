@@ -6,7 +6,7 @@
 #include "city.h"
 #include "strategies.h"
 
-population* create_population(int nb_entity, bool allowed_strategies[]);
+population* create_population(int nb_entity, city_parameters* parameters);
 void simulate_one_generation(city* cit);
 void simulate_population(int max_generation, int nb_entity, city_parameters* city_parameters);
 
