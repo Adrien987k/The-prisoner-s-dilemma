@@ -12,7 +12,7 @@
 #include "city.h"
 #include "simulation.h"
 
-#define PORT 4321
+#define PORT 8888
 
 typedef struct {
   int socket;
@@ -21,6 +21,8 @@ typedef struct {
 
 server* create_server(int socket);
 server* connect_to_server (char *hostname, int port);
+void wait_for_confirmation(server* serv);
+population* select_migrants(population* pop);
 void send_current_state (server* serv, city* cit, population* migrants);
 population* receive_emigrants(server* serv);
 void integrate_emigrants(city* cit, population* emigrants);

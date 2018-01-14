@@ -28,7 +28,7 @@ server* connect_to_server (char *hostname, int port) {
   server_address.sin_port = htons(port);
 
   // se connecter au serveur
-  printf("Connexion au serveur à %s:%d ...\n",hostname,port);
+  printf("Connexion au serveur à %s:%d ...\n",hostname, port);
   while (1) {
     if (connect(s,(struct sockaddr *)&server_address, sizeof server_address) == 0) {
       printf("Connecté !\n");
@@ -40,13 +40,67 @@ server* connect_to_server (char *hostname, int port) {
 
 }
 
+void wait_for_confirmation(server* serv) {
+  int buffer[BUFSIZE];
+  recv(serv->socket, buffer, BUFSIZE * sizeof(int), 0);
+}
+
+int* get_num_strategies_allowed(population* pop){
+  int i,j;
+  int nb_strategies;
+  nb_strategies = 1;
+  for (i = 0; i < NB_STRATEGY; i++) {
+    if (pop->proportions[i] > 0)nb_strategies++;
+  }
+  int* num_strategies_allowed = malloc(nb_strategies * sizeof(int));
+  num_strategies_allowed[0]=nb_strategies;
+  j = 1;
+  for (i = 0; i < NB_STRATEGY; i++) {
+    if (pop->proportions[i] > 0) {
+      num_strategies_allowed[j]=i;
+      j++;
+    }
+  }
+  return num_strategies_allowed;
+}
+
+population* select_migrants(population* pop){
+  population* pop_migrants = malloc(sizeof(population));
+  int i;
+  int max_migrants;
+  for (i = 0; i < NB_STRATEGY; i++) {
+    pop_migrants->proportions[i] = 0;
+  }
+  max_migrants = pop->nb_entity / 20;
+  int r = my_randint(max_migrants+1);
+  pop_migrants->nb_entity = r;
+  pop->nb_entity -= r;
+  for (i = 0; i < r; i++) {
+    int* num_strategies_allowed = get_num_strategies_allowed(pop);
+    int j = my_randint(num_strategies_allowed[0]-1) + 1;
+    pop_migrants->proportions[num_strategies_allowed[j]]++;
+    pop->proportions[num_strategies_allowed[j]]--;
+    free(num_strategies_allowed);
+  }
+  return pop_migrants;
+}
+
 void send_current_state(server* serv, city* cit, population* migrants) {
   int buffer[BUFSIZE];
   int i, n = 0;
+
+  buffer[n++] = cit->parameters->T;
+  buffer[n++] = cit->parameters->D;
+  buffer[n++] = cit->parameters->C;
+  buffer[n++] = cit->parameters->P;
+
+  for (i = 0; i < NB_STRATEGY; i++) buffer[n++] = cit->parameters->allowed_strategies[i];
+
   for (i = 0; i < NB_STRATEGY; i++) {
     buffer[n++] = cit->pop->proportions[i];
   }
   buffer[n++] = cit->pop->nb_entity;
+
   for (i = 0; i < NB_STRATEGY; i++) {
     buffer[n++] = migrants->proportions[i];
   }
@@ -58,7 +112,7 @@ void send_current_state(server* serv, city* cit, population* migrants) {
 }
 
 population* receive_emigrants(server* serv) {
-  population* emigrants = create_population(0, NULL);
+  population* emigrants = create_empty_population();
 
   int buffer[BUFSIZE];
   recv(serv->socket, buffer, BUFSIZE * sizeof(int), 0);
@@ -78,24 +132,31 @@ void integrate_emigrants(city* cit, population* emigrants) {
   cit->pop->nb_entity += emigrants->nb_entity;
 }
 
-void run_client() {
-  server* serv = connect_to_server("hostname", PORT);
-
+void run_client(int port, char* hostname) {
+  server* serv = connect_to_server(hostname, (port == 0) ? PORT : port);
+  write(1, "debug 0\n", 9);
   bool allowed_strategies[NB_STRATEGY];
   int i;
   for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = true;
+  write(1, "debug 1\n", 9);
   city_parameters* parameters = create_city_parameters(5, 0, 3, 1, allowed_strategies);
-
+  write(1, "debug 2\n", 9);
   city* cit = create_city(1000, parameters);
+
+  write(1, "debug 3\n", 9);
+  wait_for_confirmation(serv);
 
   population* emigrants;
   while (true) {
-    send_current_state(serv, cit, NULL); /* !!! SELECT PEOPLE TO SEND !!! */
-
+    population* migrants = select_migrants(cit->pop);
+    write(1, "debug 4\n", 9);
+    send_current_state(serv, cit, migrants);
+write(1, "debug 5\n", 9);
     emigrants = receive_emigrants(serv);
-
+write(1, "debug 6\n", 9);
     integrate_emigrants(cit, emigrants);
-
+write(1, "debug 7\n", 9);
     simulate_one_generation(cit);
+    write(1, "debug 8\n", 9);
   }
 }

@@ -1,6 +1,13 @@
 
 #include "simulation.h"
 
+population* create_empty_population() {
+  population* pop = malloc(sizeof(population));
+  pop->nb_entity = 0;
+  pop->generation = 0;
+  return pop;
+}
+
 population* create_population(int nb_entity, city_parameters* parameters) {
   population* pop = malloc(sizeof(population));
   pop->nb_entity = nb_entity;
@@ -9,7 +16,7 @@ population* create_population(int nb_entity, city_parameters* parameters) {
   int reste = nb_entity - entity_per_strat * parameters->nb_allowed_strategies;
   int i,j;
   for (i = 0; i < NB_STRATEGY; i++) {
-    pop->proportions[i] = entity_per_strat;
+    if (parameters->allowed_strategies[i]) pop->proportions[i] = entity_per_strat;
   }
   j = 0;
   for (i = 0; i < reste; i++){

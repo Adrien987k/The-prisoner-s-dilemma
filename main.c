@@ -2,6 +2,8 @@
 #include "strategies.h"
 
 int main () {
+  srand(time(NULL));
+
   bool allowed_strategies[NB_STRATEGY];
   int i;
   for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = true;
