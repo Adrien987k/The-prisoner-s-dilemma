@@ -147,14 +147,15 @@ void run_client(int port, char* hostname) {
   wait_for_confirmation(serv);
 
   population* emigrants;
+  population* migrants;
   while (true) {
-    population* migrants = select_migrants(cit->pop);
-
+    migrants = select_migrants(cit->pop);
     send_current_state(serv, cit, migrants);
+    free(migrants);
 
     emigrants = receive_emigrants(serv);
-
     integrate_emigrants(cit, emigrants);
+    free(emigrants);
 
     simulate_one_generation(cit);
 
