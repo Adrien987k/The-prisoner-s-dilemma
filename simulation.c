@@ -41,7 +41,7 @@ void simulate_one_generation(city* cit) {
     for (j = 0; j < cit->pop->proportions[i]; j++) {
       for (k = 0; k < nb_strat; k++) {
         for (l = (i == k ? 1 : 0); l < cit->pop->proportions[k]; l++) {
-          result = fight(strategies[i], strategies[k], 10, cit->parameters);
+          result = fight(strategies[i], strategies[k], cit->parameters->nb_turn_per_fight, cit->parameters);
           scores[i] += result->score_player_0;
         }
       }
@@ -133,12 +133,13 @@ void simulate_population(int max_generation, int nb_entity, city_parameters* par
   destroy_city(cit);
 }
 
-city_parameters* create_city_parameters(int T, int D, int C, int P, bool allowed_strategies[]) {
+city_parameters* create_city_parameters(int T, int D, int C, int P, bool allowed_strategies[], int nb_turn) {
   city_parameters* parameters = malloc(sizeof(city_parameters));
   parameters->T = T;
   parameters->D = D;
   parameters->C = C;
   parameters->P = P;
+  parameters->nb_turn_per_fight = nb_turn;
 
   int i;
   for (i = 0; i < NB_STRATEGY; i++) {

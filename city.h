@@ -21,6 +21,7 @@ typedef struct {
   int P;
   bool allowed_strategies[NB_STRATEGY];
   int nb_allowed_strategies;
+  int nb_turn_per_fight;
 } city_parameters;
 
 typedef struct {
