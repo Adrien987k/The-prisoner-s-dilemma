@@ -78,11 +78,12 @@ void get_current_state_and_migrants(int socket, city* cit, city* migrants_city) 
   int D = buffer[n++];
   int C = buffer[n++];
   int P = buffer[n++];
+  int nb_turn_per_fight = buffer[n++];
 
   bool allowed_strategies[NB_STRATEGY];
   for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = buffer[n++];
 
-  city_parameters* city_parameters = create_city_parameters(T, D, C, P, allowed_strategies, cit->parameters->nb_turn_per_fight);
+  city_parameters* city_parameters = create_city_parameters(T, D, C, P, allowed_strategies, nb_turn_per_fight);
   *cit = *create_city(0, city_parameters);
   *migrants_city = *create_city(0, city_parameters);
 
@@ -201,11 +202,19 @@ void run_server(char* addr) {
   city migrants_cities[NB_CLIENT];
   city* emigrants_cities;
   int generation = 0;
-  while (true) {
+  bool running = true;
+  int last_time = get_current_time();
+  while (running) {
     for (i = 0; i < NB_CLIENT; i++) clients_ok[i] = 0;
 
     nb_client_ok = 0;
     while (true) {
+      if (get_current_time() - last_time > DELAY_WAITING_CLIENT) {
+        printf ("No answer of one or more client since %d seconds. server stop running\n"
+                , DELAY_WAITING_CLIENT);
+        running = false;
+        break;
+      }
 
       if (poll(fds, NB_CLIENT, -1) < 0)
         fprintf(stderr, "Error poll: %d", errno);
@@ -221,6 +230,8 @@ void run_server(char* addr) {
       }
 
       if (nb_client_ok == NB_CLIENT) {
+        last_time = get_current_time();
+
         for (i = 0; i < 50; i++) printf("\n");
         printf("============= GENERATION %d =============\n", generation++);
 

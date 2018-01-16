@@ -93,6 +93,7 @@ void send_current_state(server* serv, city* cit, population* migrants) {
   buffer[n++] = cit->parameters->D;
   buffer[n++] = cit->parameters->C;
   buffer[n++] = cit->parameters->P;
+  buffer[n++] = cit->parameters->nb_turn_per_fight;
 
   for (i = 0; i < NB_STRATEGY; i++) buffer[n++] = cit->parameters->allowed_strategies[i];
 

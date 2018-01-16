@@ -13,3 +13,7 @@ int my_randint(int n) {
     return r % n;
   }
 }
+
+int get_current_time() {
+  return time(NULL);
+}

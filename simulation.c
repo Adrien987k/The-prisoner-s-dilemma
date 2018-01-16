@@ -42,8 +42,8 @@ void simulate_one_generation(city* cit) {
       for (k = 0; k < nb_strat; k++) {
         for (l = (i == k ? 1 : 0); l < cit->pop->proportions[k]; l++) {
           result = fight(strategies[i], strategies[k], cit->parameters->nb_turn_per_fight, cit->parameters);
-          free(result);
           scores[i] += result->score_player_0;
+          free(result);
         }
       }
     }

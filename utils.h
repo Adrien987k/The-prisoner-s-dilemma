@@ -6,5 +6,6 @@
 #include <stdlib.h>
 
 int my_randint(int n);
+int get_current_time();
 
 #endif

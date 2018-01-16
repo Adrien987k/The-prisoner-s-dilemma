@@ -4,6 +4,8 @@ EXEC_2=dileme2
 EXEC_SERVER=server.exe
 EXEC_CLIENT=client.exe
 
+ALL_EXEC=$(EXEC) $(EXEC_1) $(EXEC_2) $(EXEC_SERVER) $(EXEC_CLIENT)
+
 SOURCES_COMMON=strategies.c simulation.c utils.c
 SOURCES=$(SOURCES_COMMON) server.c client.c main.c
 SOURCES_1=$(SOURCES_COMMON) dileme1.c
@@ -11,11 +13,16 @@ SOURCES_2=$(SOURCES_COMMON) dileme2.c
 SOURCES_SERVER=$(SOURCES_COMMON) server.c server_main.c
 SOURCES_CLIENT=$(SOURCES_COMMON) client.c client_main.c
 
+ALL_SOURCES=$(SOURCES) dileme1.c dileme2.c server_main.c client_main.c
+
 OBJECTS=$(SOURCES:.c=.o)
 OBJECTS_1=$(SOURCES_1:.c=.o)
 OBJECTS_2=$(SOURCES_2:.c=.o)
 OBJECTS_SERVER=$(SOURCES_SERVER:.c=.o)
 OBJECTS_CLIENT=$(SOURCES_CLIENT:.c=.o)
+
+ALL_OBJECTS=$(ALL_SOURCES:.c=.o)
+
 CC=gcc
 CFLAGS=-W -Wall -g -lm
 
@@ -54,4 +61,4 @@ $(EXEC): $(OBJECTS)
 	$(CC) -o $@ $^
 
 clean:
-	rm -rf $(EXEC) $(OBJECTS) $(SOURCES:.c=.c~) $(SOURCES:.c=.h~) Makefile~
+	rm -rf $(ALL_EXEC) $(ALL_OBJECTS) $(ALL_SOURCES:.c=.c~) $(ALL_SOURCES:.c=.h~) Makefile~
