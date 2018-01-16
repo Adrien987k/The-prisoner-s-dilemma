@@ -82,6 +82,17 @@ void simulate_one_generation(city* cit) {
   }
   cit->pop->generation++;
 
+  int n = 0;
+  cit->total_score = 0;
+  for (i = 0; i < NB_STRATEGY; i++) {
+    if (!cit->parameters->allowed_strategies[i]) {
+      cit->scores[i] = 0;
+    } else {
+      cit->scores[i] = scores[n];
+      cit->total_score += scores[n++];
+    }
+  }
+
   free(scores);
   free(restes);
   free(strategies);
@@ -144,6 +155,10 @@ city* create_city(int nb_entity, city_parameters* parameters) {
 
   cit->parameters = malloc(sizeof(city_parameters));
   cit->parameters = parameters;
+
+  int i;
+  for (i = 0; i < NB_STRATEGY; i++) cit->scores[i] = 0;
+  cit->total_score = 0;
 
   return cit;
 }

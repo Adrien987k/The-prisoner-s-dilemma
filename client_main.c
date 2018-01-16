@@ -6,6 +6,8 @@
 /* port = 0 for default port */
 
 int main(int argc, char* argv[]) {
+  srand(time(NULL));
+
   if (argc < 2 || argc > 3) {
     printf("usage: lauch_client <port> [<inet_addr>]\n");
     return EXIT_FAILURE;
