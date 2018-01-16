@@ -30,11 +30,9 @@ typedef struct {
 
 typedef struct {
   int winner;
-  int score_winner;
-  int score_looser;
   int score_player_0;
-  int score_player_1;
 } result_of_fight;
+
 
 strategy* get_strategies_array(city_parameters* parameters);
 int majority(int plays[], int n, int mou);

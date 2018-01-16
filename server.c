@@ -204,7 +204,6 @@ void run_server(char* addr) {
             clients_ok[i] = true;
 
             get_current_state_and_migrants(fds[i].fd, &cities[i], &migrants_cities[i]);
-
             nb_client_ok++;
           }
         }

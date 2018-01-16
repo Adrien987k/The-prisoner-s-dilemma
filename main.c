@@ -14,7 +14,7 @@ int main () {
 
   all_score_against_all(100, parameters);
 
-  simulate_population(1000, 1100, parameters);
+  simulate_population(30, 1100, parameters);
 
   return EXIT_SUCCESS;
 }

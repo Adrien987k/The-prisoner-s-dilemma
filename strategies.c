@@ -140,10 +140,7 @@ result_of_fight* fight(strategy strat1, strategy strat2, int nb_turn, city_param
   free(prev);
   result_of_fight* result = malloc(sizeof(result_of_fight));
   result->winner = score_player_0 > score_player_1 ? 0 : (score_player_1 > score_player_0 ? 1 : 2);
-  result->score_winner = result->winner == 0 ? score_player_0 : (result->winner == 1 ? score_player_1 : score_player_1);
-  result->score_looser = result->winner == 0 ? score_player_1 : (result->winner == 1 ? score_player_0 : score_player_1);
   result->score_player_0 = score_player_0;
-  result->score_player_1 = score_player_1;
   return result;
 }
 
