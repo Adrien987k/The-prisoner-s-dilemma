@@ -83,14 +83,17 @@ void get_current_state_and_migrants(int socket, city* cit, city* migrants_city) 
   for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = buffer[n++];
 
   city_parameters* city_parameters = create_city_parameters(T, D, C, P, allowed_strategies);
-  cit = create_city(0, city_parameters);
-  migrants_city = create_city(0, city_parameters);
+  *cit = *create_city(0, city_parameters);
+  *migrants_city = *create_city(0, city_parameters);
 
   for (i = 0; i < NB_STRATEGY; i++) cit->pop->proportions[i] = buffer[n++];
   cit->pop->nb_entity = buffer[n++];
 
   for (i = 0; i < NB_STRATEGY; i++) migrants_city->pop->proportions[i] = buffer[n++];
   migrants_city->pop->nb_entity = buffer[n++];
+
+  for (i = 0; i < NB_STRATEGY; i++) migrants_city->scores[i] = buffer[n++];
+  migrants_city->total_score = buffer[n++];
 }
 
 void display_current_cities_states(city cities[]) {
@@ -100,6 +103,7 @@ void display_current_cities_states(city cities[]) {
     printf("T = %d, D = %d, C = %d, P = %d\n",
            cities[i].parameters->T, cities[i].parameters->D,
            cities[i].parameters->C, cities[i].parameters->P);
+    printf("Total score this generation = %d\n", cities[i].total_score);
     printf("Strategies allowed : \n");
     for (j = 0; j < NB_STRATEGY; j++) printf(" %d ", j);
     printf("\n");
@@ -107,8 +111,14 @@ void display_current_cities_states(city cities[]) {
       printf(" %d ", cities[i].parameters->allowed_strategies[j] ? 1 : 0);
     printf("\n");
 
+    for (j = 0; j < NB_STRATEGY; j++) printf("|  %d  ", j);
+    printf("|\n");
+    for (j = 0; j < NB_STRATEGY; j++) printf("| %d  ", cities[i].pop->proportions[j]);
+    printf("|\n");
+    for (j = 0; j < NB_STRATEGY; j++) printf("| %d  ", cities[i].scores[j]);
+    printf("|\n");
 
-    printf("================================\n");
+    printf("================================\n\n");
   }
 }
 
@@ -184,16 +194,23 @@ void run_server(char* addr) {
 
   int nb_client_ok;
   bool clients_ok[NB_CLIENT];
+/*
   city cities[NB_CLIENT];
   city migrants_cities[NB_CLIENT];
-
+*/
   send_confirmation(client_pool);
 
+  int generation = 0;
   while (true) {
     for (i = 0; i < NB_CLIENT; i++) clients_ok[i] = 0;
+    city cities[NB_CLIENT];
+    city migrants_cities[NB_CLIENT];
 
+    nb_client_ok = 0;
     while (true) {
-      nb_client_ok = 0;
+
+      for (i = 0; i < 50; i++) printf("\n");
+      printf("========== GENERATION %d ==========\n", generation++);
 
       if (poll(fds, NB_CLIENT, -1) < 0)
         fprintf(stderr, "Error poll: %d", errno);
@@ -202,9 +219,7 @@ void run_server(char* addr) {
         if (fds[i].revents == POLLIN) {
           if (!clients_ok[i]) {
             clients_ok[i] = true;
-
             get_current_state_and_migrants(fds[i].fd, &cities[i], &migrants_cities[i]);
-
             nb_client_ok++;
           }
         }
@@ -216,7 +231,11 @@ void run_server(char* addr) {
         city* emigrants_cities = dispatch_migrants(migrants_cities);
 
         send_emigrants(client_pool, emigrants_cities);
+
+        sleep(1);
+        break;
       }
+
     }
 
   }

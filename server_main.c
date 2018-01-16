@@ -4,6 +4,8 @@
 #define DEFAULT_INET_ADDR ("127.0.0.1")
 
 int main(int argc, char* argv[]) {
+  srand(time(NULL));
+
   if (argc > 2) {
     printf("usage: lauch_server <inet_addr>\n");
     return EXIT_FAILURE;

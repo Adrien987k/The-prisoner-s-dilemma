@@ -96,15 +96,17 @@ void send_current_state(server* serv, city* cit, population* migrants) {
 
   for (i = 0; i < NB_STRATEGY; i++) buffer[n++] = cit->parameters->allowed_strategies[i];
 
-  for (i = 0; i < NB_STRATEGY; i++) {
+  for (i = 0; i < NB_STRATEGY; i++)
     buffer[n++] = cit->pop->proportions[i];
-  }
   buffer[n++] = cit->pop->nb_entity;
 
-  for (i = 0; i < NB_STRATEGY; i++) {
+  for (i = 0; i < NB_STRATEGY; i++)
     buffer[n++] = migrants->proportions[i];
-  }
   buffer[n++] = migrants->nb_entity;
+
+  for (i = 0; i < NB_STRATEGY; i++)
+    buffer[n++] = cit->scores[i];
+  buffer[n++] = cit->total_score;
 
   buffer[n] = END_OF_BUFFER;
 
@@ -134,29 +136,27 @@ void integrate_emigrants(city* cit, population* emigrants) {
 
 void run_client(int port, char* hostname) {
   server* serv = connect_to_server(hostname, (port == 0) ? PORT : port);
-  write(1, "debug 0\n", 9);
+
   bool allowed_strategies[NB_STRATEGY];
   int i;
   for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = true;
-  write(1, "debug 1\n", 9);
+
   city_parameters* parameters = create_city_parameters(5, 0, 3, 1, allowed_strategies);
-  write(1, "debug 2\n", 9);
   city* cit = create_city(1000, parameters);
 
-  write(1, "debug 3\n", 9);
   wait_for_confirmation(serv);
 
   population* emigrants;
   while (true) {
     population* migrants = select_migrants(cit->pop);
-    write(1, "debug 4\n", 9);
+
     send_current_state(serv, cit, migrants);
-write(1, "debug 5\n", 9);
+
     emigrants = receive_emigrants(serv);
-write(1, "debug 6\n", 9);
+
     integrate_emigrants(cit, emigrants);
-write(1, "debug 7\n", 9);
+
     simulate_one_generation(cit);
-    write(1, "debug 8\n", 9);
+
   }
 }

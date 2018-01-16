@@ -26,6 +26,8 @@ typedef struct {
 typedef struct {
   population* pop;
   city_parameters* parameters;
+  int scores[NB_STRATEGY];
+  int total_score;
 } city;
 
 #endif
