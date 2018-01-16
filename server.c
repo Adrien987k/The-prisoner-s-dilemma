@@ -82,7 +82,7 @@ void get_current_state_and_migrants(int socket, city* cit, city* migrants_city) 
   bool allowed_strategies[NB_STRATEGY];
   for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = buffer[n++];
 
-  city_parameters* city_parameters = create_city_parameters(T, D, C, P, allowed_strategies);
+  city_parameters* city_parameters = create_city_parameters(T, D, C, P, allowed_strategies, cit->parameters->nb_turn_per_fight);
   *cit = *create_city(0, city_parameters);
   *migrants_city = *create_city(0, city_parameters);
 
