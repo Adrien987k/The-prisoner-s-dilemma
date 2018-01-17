@@ -1,5 +1,6 @@
 
 #include "server.h"
+#include <ifaddrs.h>
 
 client* create_client(int socket) {
   client* clt = malloc(sizeof(client));
@@ -18,18 +19,44 @@ void add_client(client_pool* clients, client* client) {
   clients->clients[clients->nb_client - 1] = *client;
 }
 
-client_pool* wait_for_clients(int port, char* addr) {
-  struct sockaddr_in server_address;
-
+client_pool* wait_for_clients(int port, char* hostname) {
   // créer un socket TCP
   int s = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-  // connecter le socker au port choisi
+  struct ifaddrs *ifaddr, *ifa;
+  int family, t, n;
+  char host[NI_MAXHOST];
+
+  if (getifaddrs(&ifaddr) == -1) {
+       perror("getifaddrs");
+       exit(EXIT_FAILURE);
+  }
+  for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++) {
+    if (ifa->ifa_addr == NULL)
+      continue;
+    family = ifa->ifa_addr->sa_family;
+    if (family == AF_INET) {
+      t = getnameinfo(ifa->ifa_addr,
+            (family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6),
+                  host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+      if (t != 0) {
+        printf("getnameinfo() failed: %s\n", gai_strerror(s));
+        exit(EXIT_FAILURE);
+      }
+      if (!strcmp("127.0.0.1", host)) continue;
+      else break;
+    }
+  }
+
+  freeifaddrs(ifaddr);
+
+  struct sockaddr_in server_address;
   server_address.sin_family = AF_INET;
-  server_address.sin_addr.s_addr = inet_addr(addr);
+
+  server_address.sin_addr.s_addr = inet_addr(!strcmp(hostname, "no") ? "127.0.0.1" : host);
   server_address.sin_port = htons(port);
 
-  if (bind(s,(struct sockaddr *)&server_address,sizeof server_address)) {
+  if (bind(s, (struct sockaddr *) &server_address, sizeof server_address)) {
     fprintf(stderr,"Erreur : bind échoue, " "port %d encore occupé ?\n", port);
     exit(1);
   }
@@ -58,21 +85,34 @@ client_pool* wait_for_clients(int port, char* addr) {
   return client_pool;
 }
 
-void send_confirmation(client_pool* client_pool) {
+void send_confirmation(client_pool* client_pool, int client) {
   int buffer[BUFSIZE];
-  buffer[0] = 0;
+  buffer[0] = -2;
   int i;
-  for (i = 0; i < NB_CLIENT; i++) {
-    send(client_pool->clients[i].socket, buffer, BUFSIZE * sizeof(int), 0);
-  }
+  //for (i = 0; i < NB_CLIENT; i++) {
+    send(client_pool->clients[client].socket, buffer, BUFSIZE * sizeof(int), 0);
+  //}
 }
 
 void get_current_state_and_migrants(int socket, city* cit, city* migrants_city) {
+  int buffer_temp[BUFSIZE];
   int buffer[BUFSIZE];
 
-  recv(socket, buffer, BUFSIZE * sizeof(int), 0);
-
   int i, n = 0;
+
+  int total = 0;
+  while (total < 4096) {
+    printf("RECV\n");
+    fflush(stdout);
+    int nb = recv( socket, buffer + total, 4096 - total, 0);
+    if (nb == -1) {
+      sleep(1);
+      continue;
+    }
+    printf("RECV = %d\n", nb);
+    total += nb;
+    fflush(stdout);
+  }
 
   int T = buffer[n++];
   int D = buffer[n++];
@@ -179,12 +219,25 @@ void send_emigrants(client_pool* client_pool, city emigrant_cities[]) {
     }
     buffer[j] = emigrant_cities[i].pop->nb_entity;
 
-    send(client_pool->clients[i].socket, (char*) buffer, BUFSIZE * sizeof(int), 0);
+    int total = 0;
+    while (total < 4096) {
+      printf("SEND\n");
+      fflush(stdout);
+      int res = send(client_pool->clients[i].socket, buffer + total, 4096 - total, 0);
+      if (res == -1) {
+        sleep(1);
+        continue;
+      }
+      printf("SENT = %d\n", res);
+      fflush(stdout);
+      total += res;
+    }
   }
 }
 
-void run_server(char* addr) {
-  client_pool* client_pool = wait_for_clients(PORT, addr); /* !!! Change inet addr !!! */
+void run_server(char* hostname) {
+  printf ("DEBUG %s\n", hostname);
+  client_pool* client_pool = wait_for_clients(PORT, hostname);
 
   struct pollfd fds[NB_CLIENT];
   int i;
@@ -193,10 +246,10 @@ void run_server(char* addr) {
     fds[i].events = POLLIN;
   }
 
+  for (i = 0; i < NB_CLIENT; i++) send_confirmation(client_pool, i);
+
   int nb_client_ok;
   bool clients_ok[NB_CLIENT];
-
-  send_confirmation(client_pool);
 
   city cities[NB_CLIENT];
   city migrants_cities[NB_CLIENT];
@@ -205,9 +258,11 @@ void run_server(char* addr) {
   bool running = true;
   int last_time = get_current_time();
   while (running) {
+
     for (i = 0; i < NB_CLIENT; i++) clients_ok[i] = 0;
 
     nb_client_ok = 0;
+    //send_confirmation(client_pool, 0);
     while (true) {
       if (get_current_time() - last_time > DELAY_WAITING_CLIENT) {
         printf ("No answer of one or more client since %d seconds. server stop running\n"
@@ -216,7 +271,7 @@ void run_server(char* addr) {
         break;
       }
 
-      if (poll(fds, NB_CLIENT, -1) < 0)
+      if (poll(fds, NB_CLIENT, 1000) < 0)
         fprintf(stderr, "Error poll: %d", errno);
 
       for (i = 0; i < NB_CLIENT; i++) {
@@ -225,10 +280,11 @@ void run_server(char* addr) {
             clients_ok[i] = true;
             get_current_state_and_migrants(fds[i].fd, &cities[i], &migrants_cities[i]);
             nb_client_ok++;
+            //if (nb_client_ok < 4) send_confirmation(client_pool, nb_client_ok);
           }
         }
       }
-
+      printf("NB_CLIENT OK = %d\n", nb_client_ok);
       if (nb_client_ok == NB_CLIENT) {
         last_time = get_current_time();
 
@@ -242,6 +298,7 @@ void run_server(char* addr) {
         send_emigrants(client_pool, emigrants_cities);
 
         sleep(1);
+
         break;
       }
 

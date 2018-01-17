@@ -16,7 +16,7 @@ server* connect_to_server (char *hostname, int port) {
   // trouver l'adresse IP du serveur
   struct hostent *host_address = gethostbyname(hostname);
   if (!host_address) {
-    fprintf(stderr,"Erreur : serveur %s non connu\n",hostname);
+    fprintf(stderr,"Erreur : serveur %s non connu\n", hostname);
     exit(1);
   }
 
@@ -30,7 +30,7 @@ server* connect_to_server (char *hostname, int port) {
   // se connecter au serveur
   printf("Connexion au serveur à %s:%d ...\n",hostname, port);
   while (1) {
-    if (connect(s,(struct sockaddr *)&server_address, sizeof server_address) == 0) {
+    if (connect(s, (struct sockaddr *) &server_address, sizeof server_address) == 0) {
       printf("Connecté !\n");
       return create_server(s);
     }
@@ -111,19 +111,45 @@ void send_current_state(server* serv, city* cit, population* migrants) {
 
   buffer[n] = END_OF_BUFFER;
 
-  send(serv->socket, (char*) buffer, BUFSIZE * sizeof(int), 0);
+  int total = 0;
+  while (total < 4096) {
+    printf("SEND\n");
+    fflush(stdout);
+    int nb = send(serv->socket, buffer + total, 4096 - total, 0);
+    if (nb == -1) {
+      sleep(1);
+      continue;
+    }
+    printf("SENT nb = %d\n", nb);
+    fflush(stdout);
+    total += nb;
+  }
 }
 
 population* receive_emigrants(server* serv) {
   population* emigrants = create_empty_population();
 
   int buffer[BUFSIZE];
-  recv(serv->socket, buffer, BUFSIZE * sizeof(int), 0);
+  fflush(stdout);
+  int total = 0;
+  while(total < 4096) {
+    printf("RECV\n");
+    fflush(stdout);
+    int rec = recv(serv->socket, buffer + total, 4096 - total, 0);
+    if (rec == -1) {
+      return NULL;
+    }
+    //if (buffer[0] == -2) return NULL;
+    printf("RECV = %d\n", rec);
+    fflush(stdout);
+    total += rec;
+  }
 
   int i;
   for (i = 0; i < NB_STRATEGY; i++) emigrants->proportions[i] = buffer[i];
   emigrants->nb_entity = buffer[i];
-
+  printf ("DEBUUUUUUUG\n");
+  fflush(stdout);
   return emigrants;
 }
 
@@ -149,12 +175,20 @@ void run_client(int port, char* hostname) {
 
   population* emigrants;
   population* migrants;
+  i = 0;
   while (true) {
+
+    printf("DEBUG %d\n", i++);
+    fflush(stdout);
+
     migrants = select_migrants(cit->pop);
+    //wait_for_confirmation(serv);
     send_current_state(serv, cit, migrants);
     free(migrants);
 
     emigrants = receive_emigrants(serv);
+    if (emigrants == NULL) continue;
+
     integrate_emigrants(cit, emigrants);
     free(emigrants);
 

@@ -12,7 +12,7 @@ population* create_population(int nb_entity, city_parameters* parameters) {
   population* pop = malloc(sizeof(population));
   pop->nb_entity = nb_entity;
   pop->generation = 0;
-  int entity_per_strat = nb_entity / parameters->nb_allowed_strategies;
+  int entity_per_strat = parameters->nb_allowed_strategies == 0 ? 0 : nb_entity / parameters->nb_allowed_strategies;
   int reste = nb_entity - entity_per_strat * parameters->nb_allowed_strategies;
   int i,j;
   for (i = 0; i < NB_STRATEGY; i++) {
@@ -62,7 +62,7 @@ void simulate_one_generation(city* cit) {
   for (i = 0; i < nb_strat; i++) {
     double double_pop;
     int int_pop;
-    double_pop = (sum != 0 ? cit->pop->nb_entity * (scores[i] / sum) : 0);
+    double_pop = (sum != 0 ? cit->pop->nb_entity * (scores[i] / (sum == 0 ? 1 : sum)) : 0);
     int_pop = double_pop;
     total_pop += int_pop;
     restes[i] = double_pop - int_pop;

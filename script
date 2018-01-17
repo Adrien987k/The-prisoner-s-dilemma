@@ -1,0 +1,4 @@
+
+cd Cours/L3/Archi-Sys/The-prisoner-s-dilemma
+./client.exe 0 15.dptinfo.ens-cachan.fr &
+exit

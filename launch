@@ -1,0 +1,7 @@
+
+for i in `seq 1 4`;
+do
+        ssh 0$i.dptinfo.ens-cachan.fr 'bash -s' < script &
+done
+
+./server.exe n

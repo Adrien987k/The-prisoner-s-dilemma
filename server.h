@@ -35,8 +35,8 @@ typedef struct {
 client* create_client();
 client_pool* create_empty_client_pool();
 void add_client(client_pool* clts, client* clt);
-client_pool* wait_for_clients(int port, char* addr);
-void send_confirmation(client_pool* client_pool);
+client_pool* wait_for_clients(int port, char* hostname);
+void send_confirmation(client_pool* client_pool, int client);
 void get_current_state_and_migrants(int socket, city* cit, city* migrants_city);
 void display_current_cities_states(city cities[]);
 city* dispatch_migrants(city migrant_cities[]);
