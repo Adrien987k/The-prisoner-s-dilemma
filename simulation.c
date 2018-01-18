@@ -8,7 +8,7 @@ population* create_empty_population() {
   return pop;
 }
 
-population* create_population(int nb_entities_per_strat[], city_parameters* parameters) {
+population* create_population(int nb_entities_per_strat[]) {
   population* pop = malloc(sizeof(population));
   int i;
   pop->nb_entity = 0;
@@ -146,7 +146,7 @@ city_parameters* create_city_parameters(int T, int D, int C, int P, bool allowed
 
 city* create_city(int nb_entities_per_strat[], city_parameters* parameters) {
   city* cit = malloc(sizeof(city));
-  cit->pop = create_population(nb_entities_per_strat, parameters);
+  cit->pop = create_population(nb_entities_per_strat);
 
   cit->parameters = malloc(sizeof(city_parameters));
   cit->parameters = parameters;

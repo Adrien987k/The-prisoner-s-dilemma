@@ -4,4 +4,4 @@ do
         ssh 0$i.dptinfo.ens-cachan.fr 'bash -s' < script &
 done
 
-./server.exe n
+./server.exe
