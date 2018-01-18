@@ -1,7 +1,17 @@
 
-for i in `seq 1 4`;
+for i in `seq 1 9`;
 do
         ssh 0$i.dptinfo.ens-cachan.fr 'bash -s' < script &
+done
+
+for i in `seq 10 19`;
+do
+        ssh $i.dptinfo.ens-cachan.fr 'bash -s' < script &
+done
+
+for i in `seq 21 23`;
+do
+        ssh $i.dptinfo.ens-cachan.fr 'bash -s' < script &
 done
 
 ./server.exe n

@@ -20,7 +20,6 @@
 #include "simulation.h"
 
 #define PORT 8888
-#define NB_CLIENT 4
 
 typedef struct {
   int socket;
