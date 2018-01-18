@@ -165,11 +165,40 @@ void run_client(int port, char* hostname) {
   server* serv = connect_to_server(hostname, (port == 0) ? PORT : port);
 
   bool allowed_strategies[NB_STRATEGY];
+  int choose_strategy[NB_STRATEGY];
+  int entities_per_strat[NB_STRATEGY];
   int i;
-  for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = true;
+  int max_strat = NB_STRATEGY;
 
-  city_parameters* parameters = create_city_parameters(5, 0, 3, 1, allowed_strategies, 10);
-  city* cit = create_city(1000, parameters);
+  int nb = my_randint(NB_STRATEGY)+1;
+  int nb_entity = my_randint(2201);
+
+  for (i = 0; i < NB_STRATEGY; i++) {
+    allowed_strategies[i] = false;
+    choose_strategy[i] = i;
+    entities_per_strat[i] = 0;
+  }
+
+  for (i = 0; i < nb; i++) {
+    int strat = my_randint(max_strat);
+    allowed_strategies[choose_strategy[strat]] = true;
+    if (nb - i == 1){
+      int entities = my_randint(nb_entity+1);
+      entities_per_strat[choose_strategy[strat]] = entities;
+      nb_entity -= entities;
+    }else entities_per_strat[choose_strategy[strat]] = nb_entity;
+    choose_strategy[strat] = max_strat-1;
+    max_strat--;
+  }
+
+  int p = my_randint(3)+1;
+  int c = my_randint(5)+p;
+  int t = my_randint(5)+c;
+
+  int nb_turn = my_randint(16)+5;
+
+  city_parameters* parameters = create_city_parameters(t, 0, c, p, allowed_strategies, nb_turn);
+  city* cit = create_city(entities_per_strat, parameters);
 
   wait_for_confirmation(serv);
 

@@ -4,14 +4,4 @@ do
         ssh 0$i.dptinfo.ens-cachan.fr 'bash -s' < script &
 done
 
-for i in `seq 10 19`;
-do
-        ssh $i.dptinfo.ens-cachan.fr 'bash -s' < script &
-done
-
-for i in `seq 21 23`;
-do
-        ssh $i.dptinfo.ens-cachan.fr 'bash -s' < script &
-done
-
 ./server.exe n
