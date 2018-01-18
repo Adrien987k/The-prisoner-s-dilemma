@@ -13,20 +13,22 @@ int main(int argc, char* argv[]) {
     int i;
     int nb_generation;
     int nb_entity_per_strat;
-    int nb_entity;
     int nb_turn_per_fight;
+    int nb_entities[NB_STRATEGY];
 
     nb_generation = atoi(argv[1]);
     nb_entity_per_strat = atoi(argv[2]);
     nb_turn_per_fight = atoi(argv[3]);
-    nb_entity = nb_entity_per_strat * NB_STRATEGY;
 
-    for (i = 0; i < NB_STRATEGY; i++) allowed_strategies[i] = true;
+    for (i = 0; i < NB_STRATEGY; i++) {
+      allowed_strategies[i] = true;
+      nb_entities[i] = nb_entity_per_strat;
+    }
 
     city_parameters* parameters = create_city_parameters(5, 0, 3, 1, allowed_strategies, nb_turn_per_fight);
 
 
-    simulate_population(nb_generation, nb_entity, parameters);
+    simulate_population(nb_generation, nb_entities, parameters);
 
     return EXIT_SUCCESS;
   }

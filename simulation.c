@@ -8,21 +8,14 @@ population* create_empty_population() {
   return pop;
 }
 
-population* create_population(int nb_entity, city_parameters* parameters) {
+population* create_population(int nb_entities_per_strat[], city_parameters* parameters) {
   population* pop = malloc(sizeof(population));
-  pop->nb_entity = nb_entity;
+  int i;
+  pop->nb_entity = 0;
   pop->generation = 0;
-  int entity_per_strat = parameters->nb_allowed_strategies == 0 ? 0 : nb_entity / parameters->nb_allowed_strategies;
-  int reste = nb_entity - entity_per_strat * parameters->nb_allowed_strategies;
-  int i,j;
   for (i = 0; i < NB_STRATEGY; i++) {
-    if (parameters->allowed_strategies[i]) pop->proportions[i] = entity_per_strat;
-  }
-  j = 0;
-  for (i = 0; i < reste; i++){
-    while (!parameters->allowed_strategies[j])j++;
-    pop->proportions[j]++;
-    j++;
+    pop->nb_entity += nb_entities_per_strat[i];
+    pop->proportions[i] = nb_entities_per_strat[i];
   }
   return pop;
 }
@@ -99,9 +92,9 @@ void simulate_one_generation(city* cit) {
   free(strategies);
 }
 
-void simulate_population(int max_generation, int nb_entity, city_parameters* parameters) {
+void simulate_population(int max_generation, int nb_entity_per_strat[], city_parameters* parameters) {
 
-  city* cit = create_city(nb_entity, parameters);
+  city* cit = create_city(nb_entity_per_strat, parameters);
 
   int i,j;
   printf("           ");
@@ -151,9 +144,9 @@ city_parameters* create_city_parameters(int T, int D, int C, int P, bool allowed
   return parameters;
 }
 
-city* create_city(int nb_entity, city_parameters* parameters) {
+city* create_city(int nb_entities_per_strat[], city_parameters* parameters) {
   city* cit = malloc(sizeof(city));
-  cit->pop = create_population(nb_entity, parameters);
+  cit->pop = create_population(nb_entities_per_strat, parameters);
 
   cit->parameters = malloc(sizeof(city_parameters));
   cit->parameters = parameters;
